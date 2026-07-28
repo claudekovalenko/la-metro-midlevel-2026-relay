@@ -21,6 +21,11 @@
 
 // Maps the app's field names -> exact Airtable column names.
 // Confirmed against Rick's "LA Metro Midlevel 2026" base, "Applications" table.
+// The old "Barriers" column is no longer written to -- superseded by
+// "Challenges" when the Church Health survey was merged into this form.
+// doingWellElements/couldGrowElements/hasElders/etc. arrive as arrays/
+// booleans/numbers -- see the `clean` step below for how each type is
+// handled before being sent to Airtable.
 const FIELD_MAP = {
   name: 'Name',
   email: 'Email',
@@ -28,11 +33,30 @@ const FIELD_MAP = {
   church: 'Church',
   laArea: 'LA Area',
   wins: 'Wins',
-  barriers: 'Barriers',
+  challenges: 'Challenges',
+  prayerTime: 'Prayer Time',
+  doingWellElements: 'Doing Well (Checked)',
+  doingWell: 'Doing Well',
+  couldGrowElements: 'Could Grow (Checked)',
+  couldGrow: 'Could Grow',
+  churchHealthAlreadyDone: 'Church Health Already Done',
+  hasElders: 'Has Elders',
+  elders: 'Elders',
+  baptisms: 'Baptisms',
+  consistentMembers: 'Consistent Members',
+  comeAndGo: 'Come And Go',
+  meetingLocation: 'Meeting Location',
+  multipleHouses: 'Multiple Houses',
+  sharedMeal: 'Shared Meal',
+  meetingDay: 'Meeting Day',
+  meetingTime: 'Meeting Time',
+  scriptureWord: 'Word',
+  scriptureWorks: 'Works',
+  scriptureWineskins: 'Wineskins',
 };
 
-// Fields the client must supply a non-empty value for. wins/barriers are
-// optional in the form (no `required` attribute), so they're excluded here.
+// Fields the client must supply a non-empty value for. Everything else is
+// optional in the form (no `required` attribute), so it's excluded here.
 const REQUIRED_FIELDS = ['name', 'email', 'phone', 'church', 'laArea'];
 
 // "Member Survey" table -- member-survey repo's index.html.
@@ -90,8 +114,14 @@ export default {
     }
 
     // ---- Server-side validation. This is the authority, not the client's. ----
+    // `null` is a client-sent sentinel for "not applicable" (e.g. church
+    // health numbers when someone else already submitted that section) --
+    // it's kept as null so the field-building step below can omit it,
+    // rather than coercing it into a misleading 0 or empty string.
     const clean = (v) => {
       if (Array.isArray(v)) return v.filter((s) => typeof s === 'string').map((s) => s.trim()).filter(Boolean).join(', ');
+      if (typeof v === 'boolean' || typeof v === 'number') return v;
+      if (v === null) return null;
       return typeof v === 'string' ? v.trim() : '';
     };
     const entry = {};
@@ -110,9 +140,14 @@ export default {
       return json({ ok: false, error: 'Please enter a valid email address.' }, 400);
     }
 
+    // Omit null (not-applicable) and empty-string values entirely rather
+    // than sending them -- booleans (including false) and numbers
+    // (including 0) are meaningful and always sent.
     const fields = {};
     for (const [key, airtableCol] of Object.entries(fieldMap)) {
-      fields[airtableCol] = entry[key];
+      const v = entry[key];
+      if (v === null || v === '') continue;
+      fields[airtableCol] = v;
     }
 
     if (!env.AIRTABLE_TOKEN || !env.AIRTABLE_BASE_ID || !tableNameVar) {
