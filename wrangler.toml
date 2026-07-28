@@ -1,0 +1,11 @@
+name = "la-metro-midlevel-relay"
+main = "src/worker.js"
+compatibility_date = "2026-07-01"
+
+# Non-secret config. AIRTABLE_TOKEN is NOT here -- it's set separately as a
+# secret via `npx wrangler secret put AIRTABLE_TOKEN`, which stores it
+# encrypted server-side and never writes it to any file in this project.
+[vars]
+AIRTABLE_BASE_ID = "appFJ5FOwIgC8cFT0"
+AIRTABLE_TABLE_NAME = "Applications"
+AIRTABLE_MEMBER_SURVEY_TABLE_NAME = "Member Survey"

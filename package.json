@@ -1,0 +1,15 @@
+{
+  "name": "la-metro-midlevel-relay",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Cloudflare Worker relay: LA Metro Midlevel app -> Airtable. Holds the Airtable token server-side.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "secret:airtable": "wrangler secret put AIRTABLE_TOKEN"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
