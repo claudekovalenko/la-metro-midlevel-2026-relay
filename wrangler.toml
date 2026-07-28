@@ -1,6 +1,12 @@
 name = "la-metro-midlevel-relay"
 main = "src/worker.js"
-compatibility_date = "2026-07-01"
+compatibility_date = "2026-07-25"
+
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = true
 
 # Non-secret config. AIRTABLE_TOKEN is NOT here -- it's set separately as a
 # secret via `npx wrangler secret put AIRTABLE_TOKEN`, which stores it
