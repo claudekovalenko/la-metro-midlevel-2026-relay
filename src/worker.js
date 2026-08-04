@@ -54,6 +54,8 @@ const FIELD_MAP = {
   scriptureWord: 'Word',
   scriptureWorks: 'Works',
   scriptureWineskins: 'Wineskins',
+  fivePeople: 'Five People',
+  fivePlaces: 'Five Places',
 };
 
 // Fields the client must supply a non-empty value for. Everything else is
