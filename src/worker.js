@@ -21,8 +21,9 @@
 
 // Maps the app's field names -> exact Airtable column names.
 // Confirmed against Rick's "LA Metro Midlevel 2026" base, "Applications" table.
-// The old "Barriers" column is no longer written to -- superseded by
-// "Challenges" when the Church Health survey was merged into this form.
+// The old "Barriers" and "Prayer Time" columns are no longer written to --
+// "Barriers" was superseded by "Challenges" when the Church Health survey
+// was merged into this form; "Prayer Time" was dropped from the form itself.
 // doingWellElements/couldGrowElements/hasElders/etc. arrive as arrays/
 // booleans/numbers -- see the `clean` step below for how each type is
 // handled before being sent to Airtable.
@@ -34,7 +35,6 @@ const FIELD_MAP = {
   laArea: 'LA Area',
   wins: 'Wins',
   challenges: 'Challenges',
-  prayerTime: 'Prayer Time',
   doingWellElements: 'Doing Well (Checked)',
   doingWell: 'Doing Well',
   couldGrowElements: 'Could Grow (Checked)',
