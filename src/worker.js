@@ -60,7 +60,7 @@ const FIELD_MAP = {
 
 // Fields the client must supply a non-empty value for. Everything else is
 // optional in the form (no `required` attribute), so it's excluded here.
-const REQUIRED_FIELDS = ['name', 'email', 'phone', 'church', 'laArea'];
+const REQUIRED_FIELDS = ['name', 'email', 'phone', 'church', 'laArea', 'fivePeopleGroups', 'fivePlaces'];
 
 // "Member Survey" table -- member-survey repo's index.html.
 // doingWellElements/couldGrowElements arrive as arrays (checklist values) --
