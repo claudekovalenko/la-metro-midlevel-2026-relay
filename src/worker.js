@@ -54,7 +54,7 @@ const FIELD_MAP = {
   scriptureWord: 'Word',
   scriptureWorks: 'Works',
   scriptureWineskins: 'Wineskins',
-  fivePeople: 'Five People',
+  fivePeopleGroups: 'Five People Groups',
   fivePlaces: 'Five Places',
 };
 
