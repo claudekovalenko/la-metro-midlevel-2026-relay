@@ -47,6 +47,7 @@ const FIELD_MAP = {
   comeAndGo: 'Come And Go',
   meetingLocation: 'Meeting Location',
   multipleHouses: 'Multiple Houses',
+  houseZipCodes: 'House Zip Codes',
   sharedMeal: 'Shared Meal',
   meetingDay: 'Meeting Day',
   meetingTime: 'Meeting Time',
