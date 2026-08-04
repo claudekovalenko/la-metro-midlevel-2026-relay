@@ -64,6 +64,7 @@ const REQUIRED_FIELDS = ['name', 'email', 'phone', 'church', 'laArea'];
 // see the array handling in the `clean` step below, which joins them into a
 // comma-separated string for these two text columns.
 const MEMBER_SURVEY_FIELD_MAP = {
+  anonymous: 'Anonymous',
   name: 'Name',
   email: 'Email',
   phone: 'Phone',
@@ -81,7 +82,8 @@ const MEMBER_SURVEY_FIELD_MAP = {
 };
 
 // phone/wins/challenges/doingWell/couldGrow/scripture* are optional in the
-// form (no `required` attribute), so they're excluded here.
+// form (no `required` attribute), so they're excluded here. name/email are
+// dropped from the requirement below when the respondent checks "anonymous".
 const MEMBER_SURVEY_REQUIRED_FIELDS = ['name', 'email', 'church'];
 
 const CORS_HEADERS = {
@@ -103,7 +105,7 @@ export default {
     const url = new URL(request.url);
     const isMemberSurvey = url.pathname.replace(/\/+$/, '') === '/member-survey';
     const fieldMap = isMemberSurvey ? MEMBER_SURVEY_FIELD_MAP : FIELD_MAP;
-    const requiredFields = isMemberSurvey ? MEMBER_SURVEY_REQUIRED_FIELDS : REQUIRED_FIELDS;
+    let requiredFields = isMemberSurvey ? MEMBER_SURVEY_REQUIRED_FIELDS : REQUIRED_FIELDS;
     const tableNameVar = isMemberSurvey ? env.AIRTABLE_MEMBER_SURVEY_TABLE_NAME : env.AIRTABLE_TABLE_NAME;
 
     let body;
@@ -129,6 +131,11 @@ export default {
       entry[key] = clean(body[key]);
     }
 
+    // Anonymous member-survey respondents skip name/email entirely.
+    if (isMemberSurvey && entry.anonymous === true) {
+      requiredFields = requiredFields.filter((k) => k !== 'name' && k !== 'email');
+    }
+
     const missing = requiredFields.filter((k) => !entry[k]);
     if (missing.length) {
       return json(
@@ -136,7 +143,7 @@ export default {
         400
       );
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(entry.email)) {
+    if (entry.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(entry.email)) {
       return json({ ok: false, error: 'Please enter a valid email address.' }, 400);
     }
 
