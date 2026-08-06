@@ -21,8 +21,9 @@
 
 // Maps the app's field names -> exact Airtable column names.
 // Confirmed against Rick's "LA Metro Midlevel 2026" base, "Applications" table.
-// The old "Barriers" column is no longer written to -- superseded by
-// "Challenges" when the Church Health survey was merged into this form.
+// The old "Barriers" and "Prayer Time" columns are no longer written to --
+// "Barriers" was superseded by "Challenges" when the Church Health survey
+// was merged into this form; "Prayer Time" was dropped from the form itself.
 // doingWellElements/couldGrowElements/hasElders/etc. arrive as arrays/
 // booleans/numbers -- see the `clean` step below for how each type is
 // handled before being sent to Airtable.
@@ -34,7 +35,6 @@ const FIELD_MAP = {
   laArea: 'LA Area',
   wins: 'Wins',
   challenges: 'Challenges',
-  prayerTime: 'Prayer Time',
   doingWellElements: 'Doing Well (Checked)',
   doingWell: 'Doing Well',
   couldGrowElements: 'Could Grow (Checked)',
@@ -47,20 +47,20 @@ const FIELD_MAP = {
   comeAndGo: 'Come And Go',
   meetingLocation: 'Meeting Location',
   multipleHouses: 'Multiple Houses',
+  houseZipCodes: 'House Zip Codes',
   sharedMeal: 'Shared Meal',
   meetingDay: 'Meeting Day',
   meetingTime: 'Meeting Time',
-  houseZipCodes: 'House Zip Codes',
-  fivePeopleGroups: 'Five People Groups',
-  fivePlaces: 'Five Places',
   scriptureWord: 'Word',
   scriptureWorks: 'Works',
   scriptureWineskins: 'Wineskins',
+  fivePeopleGroups: 'Five People Groups',
+  fivePlaces: 'Five Places',
 };
 
 // Fields the client must supply a non-empty value for. Everything else is
 // optional in the form (no `required` attribute), so it's excluded here.
-const REQUIRED_FIELDS = ['name', 'email', 'phone', 'church', 'laArea'];
+const REQUIRED_FIELDS = ['name', 'email', 'phone', 'church', 'laArea', 'fivePeopleGroups', 'fivePlaces'];
 
 // "Member Survey" table -- member-survey repo's index.html.
 // doingWellElements/couldGrowElements arrive as arrays (checklist values) --
@@ -86,10 +86,8 @@ const MEMBER_SURVEY_FIELD_MAP = {
 
 // phone/wins/challenges/doingWell/couldGrow/scripture* are optional in the
 // form (no `required` attribute), so they're excluded here. name/email are
-// only required when NOT answering anonymously -- see the anonymous branch
-// below, which swaps this list out rather than statically requiring them.
+// dropped from the requirement below when the respondent checks "anonymous".
 const MEMBER_SURVEY_REQUIRED_FIELDS = ['name', 'email', 'church'];
-const MEMBER_SURVEY_ANONYMOUS_REQUIRED_FIELDS = ['church'];
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -110,6 +108,7 @@ export default {
     const url = new URL(request.url);
     const isMemberSurvey = url.pathname.replace(/\/+$/, '') === '/member-survey';
     const fieldMap = isMemberSurvey ? MEMBER_SURVEY_FIELD_MAP : FIELD_MAP;
+    let requiredFields = isMemberSurvey ? MEMBER_SURVEY_REQUIRED_FIELDS : REQUIRED_FIELDS;
     const tableNameVar = isMemberSurvey ? env.AIRTABLE_MEMBER_SURVEY_TABLE_NAME : env.AIRTABLE_TABLE_NAME;
 
     let body;
@@ -118,13 +117,6 @@ export default {
     } catch {
       return json({ ok: false, error: 'Invalid request.' }, 400);
     }
-
-    const isAnonymousMemberSurvey = isMemberSurvey && body.anonymous === true;
-    const requiredFields = isAnonymousMemberSurvey
-      ? MEMBER_SURVEY_ANONYMOUS_REQUIRED_FIELDS
-      : isMemberSurvey
-      ? MEMBER_SURVEY_REQUIRED_FIELDS
-      : REQUIRED_FIELDS;
 
     // ---- Server-side validation. This is the authority, not the client's. ----
     // `null` is a client-sent sentinel for "not applicable" (e.g. church
@@ -140,6 +132,11 @@ export default {
     const entry = {};
     for (const key of Object.keys(fieldMap)) {
       entry[key] = clean(body[key]);
+    }
+
+    // Anonymous member-survey respondents skip name/email entirely.
+    if (isMemberSurvey && entry.anonymous === true) {
+      requiredFields = requiredFields.filter((k) => k !== 'name' && k !== 'email');
     }
 
     const missing = requiredFields.filter((k) => !entry[k]);
